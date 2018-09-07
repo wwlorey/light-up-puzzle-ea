@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	if(argc == 3)
+	if(argc == 2)
 	{
 		cout << "The config file passed is: " << argv[1] << endl;
 
