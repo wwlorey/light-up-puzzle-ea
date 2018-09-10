@@ -5,7 +5,7 @@ import coordinate as coord_class
 
 class LightUpPuzzle:
     def __init__(self, config):
-        """Initializes the light up puzzle class."""
+        """Initializes the LightUpPuzzle class."""
 
         def generate_coord_boards():
             """Generates a 2D coordinate board and its transpose.
@@ -84,6 +84,21 @@ class LightUpPuzzle:
                         self.black_squares[coord] = int(self.config.settings["adj_value_dont_care"])
 
 
+        def force_adj_bulbs():
+            """Places bulbs around black squares where there is only one valid
+            bulb placement pattern.
+            """
+            for black_square in self.black_squares:
+                # Get the adjacent coordinates to black_square that are not black
+                adj_coords = [s for s in self.get_adj_coords(black_square) if not s in self.black_squares]
+
+                if self.black_squares[black_square] == len(adj_coords):
+                    # There is only one way to place bulbs around this square
+                    # Place those bulbs
+                    for coord in adj_coords:
+                        self.place_bulb(coord)
+
+
         self.black_squares = {}
         self.bulbs = set([])
         self.log_str = ''
@@ -103,7 +118,7 @@ class LightUpPuzzle:
         random.seed(seed_val)
         self.log_str += str(seed_val) + '\n\n'
 
-        if int(self.config.settings["generate_board"]):
+        if int(self.config.settings["generate_uniform_random_puzzle"]):
             # Generate random initial board state
             generate_random_board()
 
@@ -112,6 +127,10 @@ class LightUpPuzzle:
 
             # Re-initialize the bulb set
             self.bulbs = set([])
+
+            # Use black square adjacency heuristic to force validity
+            if int(config.settings['force_validity']):
+                force_adj_bulbs()
 
             self.log_str += 'randomly generated puzzle\n' + \
                             '\tmin_random_board_dimension: ' + str(self.config.settings["min_random_board_dimension"]) + '\n' + \
@@ -322,6 +341,8 @@ class LightUpPuzzle:
             if int(self.config.settings["enforce_adj_quotas"]):
                 for coord, adj_value in self.black_squares.items():
                     if adj_value < int(self.config.settings["adj_value_dont_care"]) and self.get_num_bulbs(self.get_adj_coords(coord)) != adj_value:
+                        # Nullify the fitness of this board
+                        self.shined_squares = set([])
                         return False
 
             return True
@@ -363,6 +384,8 @@ class LightUpPuzzle:
         if int(self.config.settings["enforce_adj_quotas"]):
             for coord, adj_value in self.black_squares.items():
                 if adj_value < int(self.config.settings["adj_value_dont_care"]) and self.get_num_bulbs(self.get_adj_coords(coord)) != adj_value:
+                    # Nullify the fitness of this board
+                    self.shined_squares = set([])
                     return False
 
         return True

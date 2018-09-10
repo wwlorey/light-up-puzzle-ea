@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
 
-import sys
+import args as args_class
 import light_up_puzzle as puzzle_class
-import light_up_puzzle_config as config_class
+import config as config_class
 
 
 if __name__ == '__main__':
 
     # Command line argument processing
-    if len(sys.argv) == 1:
-        # No config file provided, use default
-        config_file = 'config/default.cfg'
-  
-    else:
-        # Use the provided config file
-        config_file = sys.argv[1]
+    script_args = args_class.Arguments(1, ['config/default.cfg'])
+    config_file = script_args.get_args()[0]
 
 
     # Configuration setup
-    config = config_class.LightUpPuzzleConfig(config_file)
+    config = config_class.Config(config_file)
 
 
     # Open the log file and write the header
@@ -34,7 +29,11 @@ if __name__ == '__main__':
         puzzle = puzzle_class.LightUpPuzzle(config) 
 
 
+    puzzle.visualize()
+
+    
     # Run the EA
+    '''
     for run_count in range(1, int(config.settings["num_experiment_runs"]) + 1):
         max_run_fitness = 0
         eval_count = 1
@@ -62,3 +61,4 @@ if __name__ == '__main__':
                     # This is the best fitness we've found overall
                     # Write it to the solution file
                     puzzle.write_to_soln_file()
+    '''

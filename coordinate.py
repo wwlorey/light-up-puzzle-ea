@@ -1,6 +1,6 @@
 class Coordinate:
     def __init__(self, x, y):
-        """Initializes the coordinate class."""
+        """Initializes the Coordinate class."""
         self.x = x
         self.y = y
 

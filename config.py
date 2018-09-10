@@ -1,9 +1,9 @@
 import configparser
 
 
-class LightUpPuzzleConfig:
+class Config:
     def __init__(self, config_file):
-        """Initializes the light up puzzle config class.
+        """Initializes the Config class.
 
         This class assumes CFG format for data in config_file.
         """
