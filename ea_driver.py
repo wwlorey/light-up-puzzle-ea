@@ -1,4 +1,5 @@
 import copy
+import genotype as genotype_class
 import light_up_puzzle as puzzle_class
 import random
 
@@ -21,36 +22,64 @@ class EADriver:
         
 
         def init_puzzles_with_bulbs():
-            """Randomly places bulbs on each puzzle in puzzle_population in a uniform manner.
+            """Randomly places bulbs on each puzzle in population in a uniform manner.
             
-            The number attempted bulb placements is determined by config.
+            The number of attempted bulb placements is determined by config.
             """
-            for puzzle_index in range(len(self.puzzle_population)):
+            for genotype_index in range(len(self.population)):
                 for bulb_count in range(int(self.config.settings['num_bulbs_to_place'])):
-                    self.puzzle_population[puzzle_index].place_bulb_randomly()
+                    self.phenotype.place_bulb_randomly(self.population[genotype_index].bulbs)
         
+
+        def force_adj_bulbs():
+            """Places bulbs around black squares where there is only one valid
+            bulb placement pattern.
+            """
+            bulbs = set([])
+
+            # Determine where to place bulbs
+            for black_square in self.phenotype.black_squares:
+                # Get the adjacent coordinates to black_square that are not black
+                adj_coords = [s for s in self.phenotype.get_adj_coords(black_square) if not s in self.phenotype.black_squares]
+
+                if self.phenotype.black_squares[black_square] == len(adj_coords):
+                    # There is only one way to place bulbs around this square
+                    # Place those bulbs
+                    for coord in adj_coords:
+                        self.phenotype.place_bulb(coord, bulbs)
+            
+            # Save bulb placements to each genotype
+            for genotype in self.population:
+                genotype.bulbs = copy.deepcopy(bulbs)
+
+
+        self.config = config
 
         # Open the log file and write the header
         # TODO: Wrap this in a log class
-        with open(config.settings['log_file_path'], 'w') as log:
+        with open(self.config.settings['log_file_path'], 'w') as log:
             log.write('Result Log\n\n')
         
-        self.config = config
-        self.population_size = int(config.settings['µ'])
-        self.offspring_pool_size = int(config.settings['λ'])
+        self.population_size = int(self.config.settings['µ'])
+        self.offspring_pool_size = int(self.config.settings['λ'])
 
         # Create the base puzzle class (phenotype)
-        self.phenotype = puzzle_class.LightUpPuzzle(config)
+        self.phenotype = puzzle_class.LightUpPuzzle(self.config)
 
-        # Create the puzzle population: a list of bulb sets (genotypes)
-        self.puzzle_population = []
+        # Create the puzzle population: a list genotypes
+        self.population = []
         for _ in range(self.population_size):
-            self.puzzle_population.append(set([]))
+            self.population.append(genotype_class.Genotype())
 
         self.parents = []
         self.children = []
+
+
+        if int(self.config.settings['force_validity']):
+            # Use black square adjacency heuristic to force validity
+            force_adj_bulbs()
         
-        # init_puzzles_with_bulbs()
+        init_puzzles_with_bulbs()
         init_experiment_variables()
 
 
@@ -66,10 +95,11 @@ class EADriver:
     def evaluate(self, population):
         """TODO""" 
         for genotype in population:
-            self.phenotype.check_valid_solution(genotype)
+            self.phenotype.check_valid_solution(genotype.bulbs)
+            genotype.fitness = self.phenotype.get_fitness()
+            genotype.fitness_ratio = genotype.fitness / (self.phenotype.num_rows * self.phenotype.num_cols - len(self.phenotype.black_squares))
         
-        # TODO: this needs to be reworked
-        # population.sort(key = lambda x : x.fitness_ratio, reverse = True)
+        population.sort(key = lambda x : x.fitness_ratio, reverse = True)
 
 
     def select_parents(self):
@@ -79,8 +109,8 @@ class EADriver:
         """
         if int(self.config.settings['use_fitness_proportional_selection']):
             # Select the top parents for breeding
-            num_selected_parents = int(len(self.puzzle_population) * float(self.config.settings['selection_proportion']))
-            self.parents = self.puzzle_population[:num_selected_parents]
+            num_selected_parents = int(len(self.population) * float(self.config.settings['selection_proportion']))
+            self.parents = self.population[:num_selected_parents]
 
         else:
             # TODO: Perform a k-tournament selection

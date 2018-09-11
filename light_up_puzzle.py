@@ -86,26 +86,17 @@ class LightUpPuzzle:
                                 if num_placed_bulbs < max_value and self.place_bulb(adj_coord, bulbs):
                                     num_placed_bulbs += 1
 
-                            # Update the real black square value to match the number of adjacent bulbs
-                            self.black_squares[coord] = num_placed_bulbs
+                            # Account for black square placements with value zero
+                            if num_placed_bulbs == 0 and len([c for c in self.get_adj_coords(coord) if c in bulbs]):
+                                # Place a adj_value_dont_care black square to preserve the bulb placement validity
+                                self.black_squares[coord] = int(self.config.settings["adj_value_dont_care"])
+                                
+                            else:
+                                # Update the real black square value to match the number of adjacent bulbs
+                                self.black_squares[coord] = num_placed_bulbs
                     
                     elif random.random() <= float(self.config.settings["bulb_placement_prob"]):
                         # Attempt to place a bulb
-                        self.place_bulb(coord, bulbs)
-
-
-        def force_adj_bulbs():
-            """Places bulbs around black squares where there is only one valid
-            bulb placement pattern.
-            """
-            for black_square in self.black_squares:
-                # Get the adjacent coordinates to black_square that are not black
-                adj_coords = [s for s in self.get_adj_coords(black_square) if not s in self.black_squares]
-
-                if self.black_squares[black_square] == len(adj_coords):
-                    # There is only one way to place bulbs around this square
-                    # Place those bulbs
-                    for coord in adj_coords:
                         self.place_bulb(coord, bulbs)
 
 
@@ -130,14 +121,6 @@ class LightUpPuzzle:
         if int(self.config.settings["generate_uniform_random_puzzle"]):
             # Generate random initial board state
             generate_random_board()
-
-            # Ensure a valid solution is generated
-            # while not self.check_valid_solution():
-            #     generate_random_board()
-
-            if int(config.settings['force_validity']):
-                # Use black square adjacency heuristic to force validity
-                force_adj_bulbs()
 
             # TODO: make the log file writing better
             self.log_str += 'randomly generated puzzle\n' + \
@@ -177,8 +160,6 @@ class LightUpPuzzle:
         with open(config.settings["log_file_path"], 'a') as log:
             log.write(self.log_str)
 
-        self.num_empty_squares = -1 # This value is updated during solution verification
-
 
     def get_random_coord(self):
         """Returns a random coordinate ranging in the space (num_cols, num_rows)."""
@@ -214,46 +195,46 @@ class LightUpPuzzle:
 
         # Check for cross-shine in the coordinate's row (same x value)
         matching_x_coord_bulbs = [c for c in bulbs if c.x == coord.x]
-        found_x_delimeter = False if len(matching_x_coord_bulbs) else True
+        num_x_delimeters = 0
 
         for bulb_coord in matching_x_coord_bulbs:
-            if bulb_coord.x == coord.x:
-                min_y = min(bulb_coord.y, coord.y)
-                max_y = max(bulb_coord.y, coord.y)
+            min_y = min(bulb_coord.y, coord.y)
+            max_y = max(bulb_coord.y, coord.y)
 
-                if max_y - min_y < 2:
-                    return False
+            if max_y - min_y < 2:
+                return False
 
-                for black_coord in [c for c in self.black_squares if c.x == coord.x]:
-                    if black_coord.y < max_y and black_coord.y > min_y:
-                        found_x_delimeter = True
-                        break
+            for black_coord in [c for c in self.black_squares if c.x == coord.x]:
+                if black_coord.y < max_y and black_coord.y > min_y:
+                    num_x_delimeters += 1
 
-        if not found_x_delimeter:
+        if num_x_delimeters < len(matching_x_coord_bulbs):
             return False
 
         # Check for cross-shine in the coordinate's column (same y value)
         matching_y_coord_bulbs = [c for c in bulbs if c.y == coord.y]
-        found_y_delimeter = False if len(matching_y_coord_bulbs) else True
+        num_y_delimeters = 0
 
         for bulb_coord in matching_y_coord_bulbs:
-            if bulb_coord.y == coord.y:
-                min_x = min(bulb_coord.x, coord.x)
-                max_x = max(bulb_coord.x, coord.x)
+            min_x = min(bulb_coord.x, coord.x)
+            max_x = max(bulb_coord.x, coord.x)
 
-                if max_x - min_x < 2:
-                    return False
+            if max_x - min_x < 2:
+                return False
 
-                for black_coord in [c for c in self.black_squares if c.y == coord.y]:
-                    if black_coord.x < max_x and black_coord.x > min_x:
-                        found_y_delimeter = True
-                        break
+            for black_coord in [c for c in self.black_squares if c.y == coord.y]:
+                if black_coord.x < max_x and black_coord.x > min_x:
+                    num_y_delimeters += 1
 
-        if not found_y_delimeter:
+        if num_y_delimeters < len(matching_y_coord_bulbs):
             return False
 
-        bulbs.add(coord)
-        return True
+        # Check placement of bulbs next to zero-valued black square
+        if len([c for c in self.get_adj_coords(coord) if c in self.black_squares and self.black_squares[c] == 0]) == 0:
+            bulbs.add(coord)
+            return True
+
+        return False
 
 
     def visualize(self, bulbs):
