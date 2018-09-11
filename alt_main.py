@@ -21,10 +21,9 @@ if __name__ == '__main__':
 
 
     # Testing
-    ea_driver.evaluate(ea_driver.puzzle_population)
-    for puzzle in ea_driver.puzzle_population:
-        puzzle.visualize()
-        print(puzzle.fitness_ratio)
+    # ea_driver.evaluate(ea_driver.puzzle_population)
+    for genotype in ea_driver.puzzle_population:
+        ea_driver.phenotype.visualize(genotype)
     
     # ea_driver.select_parents()
     # for puzzle in ea_driver.parents:

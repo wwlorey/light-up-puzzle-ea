@@ -39,15 +39,18 @@ class EADriver:
         self.population_size = int(config.settings['µ'])
         self.offspring_pool_size = int(config.settings['λ'])
 
-        base_puzzle = puzzle_class.LightUpPuzzle(config)
+        # Create the base puzzle class (phenotype)
+        self.phenotype = puzzle_class.LightUpPuzzle(config)
+
+        # Create the puzzle population: a list of bulb sets (genotypes)
         self.puzzle_population = []
         for _ in range(self.population_size):
-            self.puzzle_population.append(copy.deepcopy(base_puzzle))
+            self.puzzle_population.append(set([]))
 
         self.parents = []
         self.children = []
         
-        init_puzzles_with_bulbs()
+        # init_puzzles_with_bulbs()
         init_experiment_variables()
 
 
@@ -62,10 +65,11 @@ class EADriver:
     
     def evaluate(self, population):
         """TODO""" 
-        for puzzle in population:
-            puzzle.check_valid_solution()
+        for genotype in population:
+            self.phenotype.check_valid_solution(genotype)
         
-        population.sort(key = lambda x : x.fitness_ratio, reverse = True)
+        # TODO: this needs to be reworked
+        # population.sort(key = lambda x : x.fitness_ratio, reverse = True)
 
 
     def select_parents(self):
@@ -115,7 +119,7 @@ class EADriver:
             
             shuffled_bulb = False
             for _ in range(int(self.config.settings['max_num_random_bulb_placements_mutation'])):
-                if tmp_child.place_bulb_randomly():
+                if self.phenotype.place_bulb_randomly(tmp_child):
                     shuffled_bulb = True
                     break
             
