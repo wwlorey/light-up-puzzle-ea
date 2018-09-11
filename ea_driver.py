@@ -99,11 +99,11 @@ class EADriver:
             genotype.fitness = self.phenotype.get_fitness()
             genotype.fitness_ratio = genotype.fitness / (self.phenotype.num_rows * self.phenotype.num_cols - len(self.phenotype.black_squares))
         
-        population.sort(key = lambda x : x.fitness_ratio, reverse = True)
+        population.sort(key=lambda x : x.fitness_ratio, reverse=True)
 
 
     def select_parents(self):
-        """Chooses which parents breed.
+        """Chooses which parents from the population breed.
 
         TODO
         """
@@ -118,12 +118,59 @@ class EADriver:
 
 
     def recombine(self):
-        """Breeds λ children from the existing parent population.
+        """Breeds λ (offspring_pool_size) children from the existing parent population.
         
         TODO
         """
-        # TODO: This should be reworked...
-        self.children = self.parents
+
+        def breed(parent_a, parent_b):
+            """Breeds two parent genotypes together to produce a child genotype.
+
+            Returns the child genotype.
+            """
+            a_bulbs = list(parent_a.bulbs)
+            b_bulbs = list(parent_b.bulbs)
+
+            # Perform a n-point crossover on the parent's bulbs
+            n = int(self.config.settings['n_point_crossover'])
+
+            min_crossover_index = 0
+            max_crossover_index = min(len(a_bulbs) - 1, len(b_bulbs) - 1)
+
+            crossover_indices = []
+            rand_start = min_crossover_index 
+            for _ in range(n):
+                crossover_indices.append(random.randint(rand_start, max_crossover_index))
+                rand_start = crossover_indices[-1]
+            
+            # Ensure the entire parent is copied during crossover
+            crossover_indices.append(max_crossover_index + 1)
+
+            child_bulbs = set([])
+            prev_crossover_index = 0
+            for crossover_index in crossover_indices:
+                if random.random() < float(self.config.settings['parent_selection_weight']):
+                    # Choose parent_a's substring
+                    for bulb in a_bulbs[prev_crossover_index:crossover_index]:
+                        child_bulbs.add(bulb)
+
+                else:
+                    # Choose parent_b's substring
+                    for bulb in b_bulbs[prev_crossover_index:crossover_index]:
+                        child_bulbs.add(bulb)
+                
+                prev_crossover_index = crossover_index
+            
+            return genotype_class.Genotype(child_bulbs)
+
+
+        for _ in range(self.offspring_pool_size):
+            # Select parents with replacement
+            parent_a = self.parents[random.randint(0, len(self.parents) - 1)]
+            parent_b = self.parents[random.randint(0, len(self.parents) - 1)]
+
+            # Produce a child
+            self.children.append(breed(parent_a, parent_b))
         
     
     def mutate(self):

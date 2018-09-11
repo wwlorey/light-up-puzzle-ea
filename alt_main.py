@@ -21,10 +21,23 @@ if __name__ == '__main__':
 
 
     # Testing
-    # ea_driver.evaluate(ea_driver.population)
-    # for genotype in ea_driver.population:
-        # ea_driver.phenotype.visualize(genotype.bulbs)
-        # print(genotype.fitness_ratio)
+    ea_driver.evaluate(ea_driver.population)
+    ea_driver.select_parents()
+    ea_driver.recombine()
+
+
+    for child in ea_driver.children:
+        for coord in child.bulbs:
+            print(coord)
+    
+        print(child.fitness_ratio)
+        print('\n\n')
+
+
+    for genotype in ea_driver.population:
+        ea_driver.phenotype.visualize(genotype.bulbs)
+        print(genotype.fitness_ratio)
+        print(genotype.fitness)
     
 
     # Run the EA
