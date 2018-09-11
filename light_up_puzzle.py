@@ -1,11 +1,19 @@
-import time
-import random
 import coordinate as coord_class
+import copy
+import random
+import time
 
 
 class LightUpPuzzle:
-    def __init__(self, config):
-        """Initializes the LightUpPuzzle class."""
+    def __init__(self, config, stub_class=False):
+        """Initializes the LightUpPuzzle class.
+
+        Where config is a Config object for the light up puzzle problem.
+
+        And where the stub_class parameter is used to signify that a deepcopy is being performed.
+        If stub_class is True, only create a "stub class" of this class.
+        Otherwise, business as usual.
+        """
 
         def generate_coord_boards():
             """Generates a 2D coordinate board and its transpose.
@@ -49,7 +57,7 @@ class LightUpPuzzle:
 
             generate_coord_boards()
 
-            # Create a list of shuffled coordinates used in assigning black squares
+            # Create a list of shuffled coordinates used in assigning black squares & bulbs
             shuffled_coords = []
             for row in self.coord_board:
                 for coord in row:
@@ -57,27 +65,32 @@ class LightUpPuzzle:
 
             random.shuffle(shuffled_coords)
 
-            # Assign black squares to the board
+            # Assign black squares & bulbs to the board
             for coord in shuffled_coords:
-                if not coord in self.bulbs and random.random() <= float(self.config.settings["black_square_placement_prob"]):
-                    adj_coord_list = self.get_adj_coords(coord)
-                    num_placed_bulbs = 0
+                if not coord in self.bulbs: 
+                    if random.random() <= float(self.config.settings["black_square_placement_prob"]):
+                        adj_coord_list = self.get_adj_coords(coord)
+                        num_placed_bulbs = 0
 
-                    # Compute the random max value for this black square
-                    max_value = random.choices(list(range(0, int(self.config.settings["adj_value_dont_care"]))), [float(n) for n in self.config.settings["black_square_value_probabilities"].split(',')])[0]
+                        # Compute the random max value for this black square
+                        max_value = random.choices(list(range(0, int(self.config.settings["adj_value_dont_care"]))), [float(n) for n in self.config.settings["black_square_value_probabilities"].split(',')])[0]
 
-                    # Put a placeholder black square to ensure the maximum amount of bulbs can be placed
-                    self.black_squares[coord] = int(self.config.settings["adj_value_dont_care"])
+                        # Put a placeholder black square to ensure the maximum amount of bulbs can be placed
+                        self.black_squares[coord] = int(self.config.settings["adj_value_dont_care"])
 
-                    # Place bulbs around the square, if allowed
-                    for adj_coord in adj_coord_list:
-                        if num_placed_bulbs < max_value and self.place_bulb(adj_coord):
-                            num_placed_bulbs += 1
+                        # Place bulbs around the square, if allowed
+                        for adj_coord in adj_coord_list:
+                            if num_placed_bulbs < max_value and self.place_bulb(adj_coord):
+                                num_placed_bulbs += 1
 
-                    # Update the real black square value to match the number of adjacent bulbs
-                    self.black_squares[coord] = num_placed_bulbs
+                        # Update the real black square value to match the number of adjacent bulbs
+                        self.black_squares[coord] = num_placed_bulbs
+                    
+                    elif random.random() <= float(self.config.settings["bulb_placement_prob"]):
+                        # Attempt to place a bulb
+                        self.place_bulb(coord)
 
-            if not self.check_completely_solved():
+            if not self.check_valid_solution():
                 # Fill non-lit coordinates with black squares of value self.config.settings["adj_value_dont_care"]
                 for coord in shuffled_coords:
                     if not coord in self.shined_squares and not coord in self.bulbs and not coord in self.black_squares:
@@ -99,8 +112,15 @@ class LightUpPuzzle:
                         self.place_bulb(coord)
 
 
+        if stub_class:
+            # All allocation will be done by __deepcopy__
+            # Return to avoid setting any member variables
+            return
+
+
         self.black_squares = {}
         self.bulbs = set([])
+        self.fitness_ratio = 0
         self.log_str = ''
 
         self.config = config
@@ -122,7 +142,8 @@ class LightUpPuzzle:
             # Generate random initial board state
             generate_random_board()
 
-            while len(self.black_squares) == (self.num_cols * self.num_rows) or not self.check_completely_solved():
+            # Ensure a valid solution is generated
+            while not self.check_valid_solution():
                 generate_random_board()
 
             # Re-initialize the bulb set
@@ -273,7 +294,7 @@ class LightUpPuzzle:
 
 
     def get_num_bulbs(self, coord_list):
-        """Returns the number of bulbs in coord_list"""
+        """Returns the number of bulbs in coord_list."""
         num_adj_bulbs = 0
 
         for coord in coord_list:
@@ -284,7 +305,7 @@ class LightUpPuzzle:
 
 
     def get_num_black_squares(self, coord_list):
-        """Returns the number of black squares in coord_list"""
+        """Returns the number of black squares in coord_list."""
         num_adj_black_squares = 0  
 
         for coord in coord_list:
@@ -294,62 +315,8 @@ class LightUpPuzzle:
         return num_adj_black_squares 
 
 
-    def check_completely_solved(self):
-        """Checks to see if the board is *completely* solved.
-
-        Returns True if the following conditions are met:
-        1. Every non-black square is shined on by a bulb.
-        2. No bulbs shine on eachother. (guaranteed by place_bulb() function)
-        3. Every black square has the required adjacent bulbs. (can be disabled using config file setting)
-        """
-        # Create and populate set of shined squares
-        self.shined_squares = set([])
-
-        if len(self.bulbs) == 0:
-            return False
-
-        for bulb_coord in self.bulbs:
-            # Create a list of adjacency lists - used for determining where the bulb shines
-            adj_coord_lists = []
-
-            adj_coord_lists.append(self.coord_board[bulb_coord.x][:bulb_coord.y][::-1])           # Row from this column to the left
-            adj_coord_lists.append(self.coord_board[bulb_coord.x][bulb_coord.y + 1:])             # Row from this column to the right
-            adj_coord_lists.append(self.transpose_coord_board[bulb_coord.y][:bulb_coord.x][::-1]) # Column from this row up
-            adj_coord_lists.append(self.transpose_coord_board[bulb_coord.y][bulb_coord.x + 1:])   # Column from this row down
-
-            for coord_list in adj_coord_lists:
-                for coord in coord_list:
-                    if coord in self.black_squares:
-                        break # Shine cannot propagate any further
-                    elif coord in self.bulbs:
-                        return False # Redundant check for bulb on bulb shining
-                    else:
-                        self.shined_squares.add(coord)
-
-            # Ensure bulbs count as shined squares
-            for bulb_coord in self.bulbs:
-                self.shined_squares.add(bulb_coord)
-
-            # Verify all squares are accounted for
-            if (len(self.black_squares) + len(self.shined_squares)) != (self.num_cols * self.num_rows):
-                self.num_empty_squares = (self.num_cols * self.num_rows) - (len(self.shined_squares) + len(self.black_squares) + len(self.bulbs))
-                return False
-
-            self.num_empty_squares = 0
-
-            # Check black square conditions
-            if int(self.config.settings["enforce_adj_quotas"]):
-                for coord, adj_value in self.black_squares.items():
-                    if adj_value < int(self.config.settings["adj_value_dont_care"]) and self.get_num_bulbs(self.get_adj_coords(coord)) != adj_value:
-                        # Nullify the fitness of this board
-                        self.shined_squares = set([])
-                        return False
-
-            return True
-
-
     def check_valid_solution(self):
-        """Checks to see if the board is *valid*.
+        """Checks to see if the board is valid.
 
         Returns True if the following conditions are met:
         1. No bulbs shine on eachother. (guaranteed by place_bulb() function)
@@ -387,6 +354,8 @@ class LightUpPuzzle:
                     # Nullify the fitness of this board
                     self.shined_squares = set([])
                     return False
+
+        self.fitness_ratio = self.get_fitness() / (self.num_rows * self.num_cols)
 
         return True
 
@@ -438,3 +407,29 @@ class LightUpPuzzle:
     def clear_board(self):
         """Clears all bulbs from the board."""
         self.bulbs = set([])
+
+    
+    def __deepcopy__(self, memo):
+        other = LightUpPuzzle(self.config, stub_class=True)
+
+        other.black_squares = {}
+        for s in self.black_squares:
+            other.black_squares[s] = self.black_squares[s]
+
+        other.bulbs = set([])
+        for b in self.bulbs:
+            other.bulbs.add(b)
+
+        other.config = self.config
+        other.coord_board = copy.deepcopy(self.coord_board)
+        other.fitness_ratio = copy.deepcopy(self.fitness_ratio)
+        other.log_str = copy.deepcopy(self.log_str)
+        other.num_cols = copy.deepcopy(self.num_cols)
+        other.num_empty_squares = copy.deepcopy(self.num_empty_squares)
+        other.num_rows = copy.deepcopy(self.num_rows)
+        other.shined_squares = copy.deepcopy(self.shined_squares)
+        other.transpose_coord_board = copy.deepcopy(self.transpose_coord_board)
+
+        memo = other
+
+        return other
