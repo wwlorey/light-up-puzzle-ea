@@ -13,13 +13,18 @@ class EADriver:
         def init_experiment_variables():
             """Initializes experiment specific variables.
             
-            This function should only be called once (at the beginning of the program).
+            This function should only be called once (at the beginning of the program, 
+            by the class' __init__ function).
             """
             self.max_global_fitness = 0
             self.fitness = 0
         
 
         def init_puzzles_with_bulbs():
+            """Randomly places bulbs on each puzzle in puzzle_population in a uniform manner.
+            
+            The number attempted bulb placements is determined by config.
+            """
             for puzzle_index in range(len(self.puzzle_population)):
                 for bulb_count in range(int(self.config.settings['num_bulbs_to_place'])):
                     self.puzzle_population[puzzle_index].place_bulb_randomly()
