@@ -24,6 +24,7 @@ if __name__ == '__main__':
     ea_driver.evaluate(ea_driver.population)
     ea_driver.select_parents()
     ea_driver.recombine()
+    ea_driver.mutate()
 
 
     for child in ea_driver.children:

@@ -179,34 +179,34 @@ class EADriver:
         TODO
         """
 
-        def shuffle_bulb(child_index):
+        def shuffle_bulb(child):
             """Attempts to move the placement of a random bulb to a random position.
 
             If this cannot be done in a valid way, the child is left unchanged.
             """
-            tmp_child = self.children[child_index]
+            tmp_child = copy.deepcopy(child)
 
-            bulb_index = random.randint(0, len(tmp_child.bulbs) - 1)
+            rand_bulb_index = random.randint(0, len(tmp_child.bulbs) - 1)
 
             try:
-                tmp_child.pop(bulb_index)
+                tmp_child.pop(rand_bulb_index)
             except:
                 # No bulbs avail to remove
                 pass
             
             shuffled_bulb = False
             for _ in range(int(self.config.settings['max_num_random_bulb_placements_mutation'])):
-                if self.phenotype.place_bulb_randomly(tmp_child):
+                if self.phenotype.place_bulb_randomly(tmp_child.bulbs):
                     shuffled_bulb = True
                     break
             
             if shuffled_bulb:
-                self.children[child_index] = tmp_child
+                child = copy.deepcopy(tmp_child)
 
 
-        for child_index in range(self.children):
+        for child in self.children:
             if random.random() < float(self.config.settings['bulb_shuffle_prob']):
-                shuffle_bulb(child_index)
+                shuffle_bulb(child)
 
 
     def select_for_survival(self):
