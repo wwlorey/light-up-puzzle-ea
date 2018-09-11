@@ -30,27 +30,27 @@ class Log:
 
 
             if int(self.config.settings['generate_uniform_random_puzzle']):
-                self.write_to_file('Randomly Generated Puzzle')
+                self.write('Randomly Generated Puzzle')
 
                 for key in random_puzzle_init_keys:
-                    self.write_to_file(key + ': ' + self.config.settings[key])
+                    self.write(key + ': ' + self.config.settings[key])
                 
-                self.write_to_file()
+                self.write()
             
             else:
-                self.write_to_file('Puzzle Source: ' + self.config.settings["input_file_path"])
-                self.write_to_file()
+                self.write('Puzzle Source: ' + self.config.settings["input_file_path"])
+                self.write()
 
 
-            self.write_to_file('board size (#cols x #rows): ' + str(self.puzzle.num_cols) + ' x ' + str(self.puzzle.num_rows))
-            self.write_to_file('seed: ' + str(self.seed.val))
+            self.write('board size (#cols x #rows): ' + str(self.puzzle.num_cols) + ' x ' + str(self.puzzle.num_rows))
+            self.write('seed: ' + str(self.seed.val))
 
 
             for key, val in self.config.settings.items():
                 if key not in special_keys.union(random_puzzle_init_keys):
-                    self.write_to_file(key + ': ' + val)
+                    self.write(key + ': ' + val)
 
-            self.write_to_file()            
+            self.write()            
 
 
         self.config = config
@@ -60,10 +60,21 @@ class Log:
         self.seed = seed
         self.puzzle = puzzle
 
-        self.file.write('Result Log\n\n')
+        self.write('Result Log')
+        self.write()
         write_config_params()
 
     
-    def write_to_file(self, write_string=''):
+    def write(self, write_string=''):
         """Writes the contents of write_string to file."""
         self.file.write(write_string + '\n')
+
+
+    def write_run_header(self, run_count):
+        """Writes the current run_count to file."""
+        self.write('Run %i' % (run_count))
+
+
+    def write_run_data(self, eval_count, average_fitness, best_fitness):
+        self.write(str(eval_count) + '\t' + str(average_fitness) + '\t' + str(best_fitness))
+        self.write()

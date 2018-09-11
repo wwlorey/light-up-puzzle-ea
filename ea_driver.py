@@ -20,7 +20,11 @@ class EADriver:
             by the class' __init__ function).
             """
             self.max_global_fitness = 0
-            self.fitness = 0
+            self.run_count = 1
+            self.avg_fitness = 0.0
+            self.total_fitnesses_seen = 0
+            self.total_fitness_sum = 0
+            self.best_fitness = 0
         
 
         def init_puzzles_with_bulbs():
@@ -81,9 +85,10 @@ class EADriver:
         
         init_puzzles_with_bulbs()
         init_experiment_variables()
+        self.init_run_variables()
 
         # Initialize the log file class
-        log = log_class.Log(self.config, self.seed, self.phenotype, overwrite=True)
+        self.log = log_class.Log(self.config, self.seed, self.phenotype, overwrite=True)
 
 
     def init_run_variables(self):
@@ -95,14 +100,30 @@ class EADriver:
         self.eval_count = 1
     
     
-    def evaluate(self, population):
+    def evaluate(self, population, log_run=False):
         """TODO""" 
         for genotype in population:
             self.phenotype.check_valid_solution(genotype.bulbs)
             genotype.fitness = self.phenotype.get_fitness()
             genotype.fitness_ratio = genotype.fitness / (self.phenotype.num_rows * self.phenotype.num_cols - len(self.phenotype.black_squares))
+
+            # Calculate average fitness
+            self.total_fitness_sum += genotype.fitness
+            self.total_fitnesses_seen += 1
+            self.avg_fitness = self.total_fitness_sum / self.total_fitnesses_seen
+
+            # Determine if this fitness is the new best fitness
+            if genotype.fitness > self.best_fitness:
+                self.best_fitness = genotype.fitness
+                # TODO: write to solution file
         
         self.sort_genotypes(population)
+
+        self.eval_count += len(population)
+
+        if log_run:
+            self.log.write_run_header(self.run_count)
+            self.log.write_run_data(self.eval_count, self.avg_fitness, self.best_fitness)
 
 
     def select_parents(self):
@@ -243,3 +264,15 @@ class EADriver:
         element's fitness ratio.
         """
         genotype_list.sort(key=lambda x : x.fitness_ratio, reverse=True)
+
+
+    def print_update(self):
+        """Prints a run count and eval count update to the screen."""
+        print('Run: %i\tEval count: %i' % (self.run_count, self.eval_count))
+        print('Avg Fitness: %f\tBest Fitness: %i' % (self.avg_fitness, self.best_fitness))
+        print()
+
+
+    def increment_run_count(self):
+        """Increments the run count."""
+        self.run_count += 1

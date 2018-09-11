@@ -43,14 +43,13 @@ if __name__ == '__main__':
 
 
     # Run the EA
-    '''
-    for run_count in range(1, int(config.settings["num_experiment_runs"]) + 1):
+    while ea_driver.run_count <= int(config.settings["num_experiment_runs"]):
         ea_driver.init_run_variables()
 
-        for eval_count in range(1, int(config.settings["num_fitness_evaluations"]) + 1):
-            print("Run: %i\tEval count: %i" % (run_count, eval_count))
+        while ea_driver.eval_count <= int(config.settings['num_fitness_evaluations']):
+            ea_driver.print_update()
 
-            ea_driver.evaluate(ea_driver.puzzle_population)
+            ea_driver.evaluate(ea_driver.population, log_run=True)
 
             ea_driver.select_parents()
 
@@ -62,6 +61,8 @@ if __name__ == '__main__':
 
             ea_driver.select_for_survival()
 
-            if ea_driver.decide_termination():
-                break
-    '''
+            # if ea_driver.decide_termination():
+            #     break
+            
+        ea_driver.increment_run_count()
+
