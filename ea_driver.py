@@ -1,6 +1,8 @@
 import copy
 import genotype as genotype_class
 import light_up_puzzle as puzzle_class
+import log as log_class
+import seed as seed_class
 import random
 
 
@@ -55,11 +57,9 @@ class EADriver:
 
         self.config = config
 
-        # Open the log file and write the header
-        # TODO: Wrap this in a log class
-        with open(self.config.settings['log_file_path'], 'w') as log:
-            log.write('Result Log\n\n')
-        
+        # Initialize the seed class
+        self.seed = seed_class.Seed(self.config)
+
         self.population_size = int(self.config.settings['µ'])
         self.offspring_pool_size = int(self.config.settings['λ'])
 
@@ -81,6 +81,9 @@ class EADriver:
         
         init_puzzles_with_bulbs()
         init_experiment_variables()
+
+        # Initialize the log file class
+        log = log_class.Log(self.config, self.seed, self.phenotype, overwrite=True)
 
 
     def init_run_variables(self):
