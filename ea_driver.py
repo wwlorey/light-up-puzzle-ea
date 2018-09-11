@@ -99,7 +99,7 @@ class EADriver:
             genotype.fitness = self.phenotype.get_fitness()
             genotype.fitness_ratio = genotype.fitness / (self.phenotype.num_rows * self.phenotype.num_cols - len(self.phenotype.black_squares))
         
-        population.sort(key=lambda x : x.fitness_ratio, reverse=True)
+        self.sort_genotypes(population)
 
 
     def select_parents(self):
@@ -215,7 +215,16 @@ class EADriver:
 
         Keeps µ (population size) constant.
         """
-        pass
+        if int(self.config.settings['use_truncation']):
+            # Use truncation for survival selection
+            combined_generations = self.population + self.children
+            self.sort_genotypes(combined_generations)
+
+            self.population = combined_generations[:self.population_size]
+        
+        else:
+            # Use k-tournament for survival selection
+            pass
 
 
     def decide_termination(self):
@@ -224,3 +233,10 @@ class EADriver:
         True if the program will terminate, False otherwise.
         """
         pass
+
+
+    def sort_genotypes(self, genotype_list):
+        """Sorts the given genotype list from most fit to least fit by each
+        element's fitness ratio.
+        """
+        genotype_list.sort(key=lambda x : x.fitness_ratio, reverse=True)
