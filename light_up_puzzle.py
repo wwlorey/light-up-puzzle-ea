@@ -237,7 +237,7 @@ class LightUpPuzzle:
         return False
 
 
-    def visualize(self, bulbs):
+    def visualize(self, bulbs=[]):
         """Prints a string representation of the board.
 
         '_' Empty white square

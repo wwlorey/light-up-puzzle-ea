@@ -75,8 +75,6 @@ class EADriver:
             for genotype_index in range(len(self.population)):
                 for bulb_count in range(int(self.config.settings['num_bulbs_to_place'])):
                     self.phenotype.place_bulb_randomly(self.population[genotype_index].bulbs)
-    
-
 
 
         self.max_run_fitness = 0
@@ -102,7 +100,6 @@ class EADriver:
         
         init_puzzles_with_bulbs()
 
-    
     
     def evaluate(self, population, log_run=False):
         """TODO""" 
@@ -136,9 +133,8 @@ class EADriver:
         TODO
         """
         if int(self.config.settings['use_fitness_proportional_selection']):
-            # Select the top parents for breeding
-            num_selected_parents = int(len(self.population) * float(self.config.settings['selection_proportion']))
-            self.parents = self.population[:num_selected_parents]
+            # Select parents for breeding using the fitness proportional "roulette wheel" method (with replacement)
+            self.parents = random.choices(self.population, weights=[(g.fitness_ratio * 100) / len(self.population) for g in self.population], k=int(self.config.settings['parent_population_size']))
 
         else:
             # TODO: Perform a k-tournament selection
