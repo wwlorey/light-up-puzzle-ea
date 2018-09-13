@@ -21,21 +21,29 @@ class EADriver:
             """
             self.max_global_fitness = 0
             self.run_count = 1
-            self.avg_fitness = 0.0
-            self.total_fitnesses_seen = 0
-            self.total_fitness_sum = 0
-            self.best_fitness = 0
+            self.best_fit_genotype = genotype_class.Genotype()
         
 
-        def init_puzzles_with_bulbs():
-            """Randomly places bulbs on each puzzle in population in a uniform manner.
-            
-            The number of attempted bulb placements is determined by config.
-            """
-            for genotype_index in range(len(self.population)):
-                for bulb_count in range(int(self.config.settings['num_bulbs_to_place'])):
-                    self.phenotype.place_bulb_randomly(self.population[genotype_index].bulbs)
-        
+        self.config = config
+
+        # Initialize the seed class
+        self.seed = seed_class.Seed(self.config)
+
+        self.population_size = int(self.config.settings['µ'])
+        self.offspring_pool_size = int(self.config.settings['λ'])
+
+        init_experiment_variables()
+        self.init_run_variables()
+
+        # Initialize the log file class
+        self.log = log_class.Log(self.config, self.seed, self.phenotype, overwrite=True)
+
+
+    def init_run_variables(self):
+        """Initializes run specific variables.
+
+        This function should be called before each run.
+        """
 
         def force_adj_bulbs():
             """Places bulbs around black squares where there is only one valid
@@ -59,18 +67,28 @@ class EADriver:
                 genotype.bulbs = copy.deepcopy(bulbs)
 
 
-        self.config = config
+        def init_puzzles_with_bulbs():
+            """Randomly places bulbs on each puzzle in population in a uniform manner.
+            
+            The number of attempted bulb placements is determined by config.
+            """
+            for genotype_index in range(len(self.population)):
+                for bulb_count in range(int(self.config.settings['num_bulbs_to_place'])):
+                    self.phenotype.place_bulb_randomly(self.population[genotype_index].bulbs)
+    
 
-        # Initialize the seed class
-        self.seed = seed_class.Seed(self.config)
 
-        self.population_size = int(self.config.settings['µ'])
-        self.offspring_pool_size = int(self.config.settings['λ'])
 
-        # Create the base puzzle class (phenotype)
+        self.max_run_fitness = 0
+        self.eval_count = 1
+        self.avg_fitness_ratio = 0.0
+        self.total_fitnesses_seen = 0
+        self.total_fitness_ratio_sum = 0
+
+        # Create/reset the base puzzle class (phenotype)
         self.phenotype = puzzle_class.LightUpPuzzle(self.config)
 
-        # Create the puzzle population: a list genotypes
+        # Create/reset the puzzle population: a list genotypes
         self.population = []
         for _ in range(self.population_size):
             self.population.append(genotype_class.Genotype())
@@ -78,26 +96,12 @@ class EADriver:
         self.parents = []
         self.children = []
 
-
         if int(self.config.settings['force_validity']):
             # Use black square adjacency heuristic to force validity
             force_adj_bulbs()
         
         init_puzzles_with_bulbs()
-        init_experiment_variables()
-        self.init_run_variables()
 
-        # Initialize the log file class
-        self.log = log_class.Log(self.config, self.seed, self.phenotype, overwrite=True)
-
-
-    def init_run_variables(self):
-        """Initializes run specific variables.
-
-        This function should be called at the top of each run.
-        """
-        self.max_run_fitness = 0
-        self.eval_count = 1
     
     
     def evaluate(self, population, log_run=False):
@@ -108,13 +112,13 @@ class EADriver:
             genotype.fitness_ratio = genotype.fitness / (self.phenotype.num_rows * self.phenotype.num_cols - len(self.phenotype.black_squares))
 
             # Calculate average fitness
-            self.total_fitness_sum += genotype.fitness
+            self.total_fitness_ratio_sum += genotype.fitness_ratio
             self.total_fitnesses_seen += 1
-            self.avg_fitness = self.total_fitness_sum / self.total_fitnesses_seen
+            self.avg_fitness_ratio = self.total_fitness_ratio_sum / self.total_fitnesses_seen
 
             # Determine if this fitness is the new best fitness
-            if genotype.fitness > self.best_fitness:
-                self.best_fitness = genotype.fitness
+            if genotype.fitness > self.best_fit_genotype.fitness:
+                self.best_fit_genotype = genotype
                 # TODO: write to solution file
         
         self.sort_genotypes(population)
@@ -123,7 +127,7 @@ class EADriver:
 
         if log_run:
             self.log.write_run_header(self.run_count)
-            self.log.write_run_data(self.eval_count, self.avg_fitness, self.best_fitness)
+            self.log.write_run_data(self.eval_count, self.avg_fitness_ratio, self.best_fit_genotype.fitness_ratio)
 
 
     def select_parents(self):
@@ -254,9 +258,15 @@ class EADriver:
     def decide_termination(self):
         """Will the experiment terminate?
 
-        True if the program will terminate, False otherwise.
+        Returns True if the program will terminate, False otherwise.
         """
-        pass
+        if self.best_fit_genotype.fitness_ratio == 1.0:
+            # The board has been completely solved
+            return True
+        
+        # TODO: Implement stagnant solution growth timeout
+
+        return False
 
 
     def sort_genotypes(self, genotype_list):
@@ -269,7 +279,7 @@ class EADriver:
     def print_update(self):
         """Prints a run count and eval count update to the screen."""
         print('Run: %i\tEval count: %i' % (self.run_count, self.eval_count))
-        print('Avg Fitness: %f\tBest Fitness: %i' % (self.avg_fitness, self.best_fitness))
+        print('Avg Fitness: %f\tBest Fitness (Ratio): %f' % (self.avg_fitness_ratio, self.best_fit_genotype.fitness_ratio))
         print()
 
 
