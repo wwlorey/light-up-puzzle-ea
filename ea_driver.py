@@ -133,13 +133,20 @@ class EADriver:
 
         TODO
         """
+        self.parents = []
+
         if int(self.config.settings['use_fitness_proportional_selection']):
             # Select parents for breeding using the fitness proportional "roulette wheel" method (with replacement)
             self.parents = random.choices(self.population, weights=[(g.fitness_ratio * 100) / float(len(self.population)) for g in self.population], k=int(self.config.settings['parent_population_size']))
 
         else:
-            # TODO: Perform a k-tournament selection
-            pass
+            # Perform a k-tournament selection with replacement
+            while len(self.parents) <= int(self.config.settings['parent_population_size']):
+                self.parents.append(self.perform_tournament_selection(self.population, int(self.config.settings['k_parent_selection']), w_replacement=True))
+            
+            # Maintain the parent population size
+            # This accounts for situations where the parent population size is not divisible by k
+            self.parents = self.parents[:int(self.config.settings['parent_population_size'])]
 
 
     def recombine(self):
@@ -244,16 +251,22 @@ class EADriver:
 
         Keeps µ (population size) constant.
         """
+        combined_generations = self.population + self.children
+        self.population = []
+
         if int(self.config.settings['use_truncation']):
             # Use truncation for survival selection
-            combined_generations = self.population + self.children
             self.sort_genotypes(combined_generations)
-
             self.population = combined_generations[:self.population_size]
         
         else:
-            # Use k-tournament for survival selection
-            pass
+            # Use k-tournament for survival selection without replacement
+            while len(self.population) <= self.population_size:
+                self.population.append(self.perform_tournament_selection(combined_generations, int(self.config.settings['k_survival_selection']), w_replacement=False))
+
+            # Maintain the population size
+            # This accounts for situations where the population size is not divisible by k
+            self.population = self.population[:self.population_size]
 
 
     def decide_termination(self):
@@ -285,5 +298,30 @@ class EADriver:
 
 
     def increment_run_count(self):
-        """Increments the run count."""
+        """Increments the run count by one."""
         self.run_count += 1
+
+    
+    def perform_tournament_selection(self, genotypes, k, w_replacement=False):
+        """Performs a k-tournament selection on the list of genotype objects.
+
+        Returns the winning genotype.
+        """
+        arena_genotypes = []
+        forbidden_indices = set([])
+
+        # Randomly select k elements from genotypes
+        for _ in range(k):
+            rand_index = random.randint(0, len(genotypes) - 1)
+
+            # Don't allow replacement (if applicable)
+            while rand_index in forbidden_indices:
+                rand_index = random.randint(0, len(genotypes) - 1)
+
+            arena_genotypes.append(genotypes[rand_index])
+
+            if w_replacement == False:
+                forbidden_indices.add(rand_index)
+
+        # Fight the genotypes
+        return max(arena_genotypes, key=lambda x : x.fitness_ratio)
