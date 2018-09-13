@@ -73,8 +73,11 @@ class EADriver:
             The number of attempted bulb placements is determined by config.
             """
             for genotype_index in range(len(self.population)):
-                for bulb_count in range(int(self.config.settings['num_bulbs_to_place'])):
-                    self.phenotype.place_bulb_randomly(self.population[genotype_index].bulbs)
+                # Place bulbs until num_bulb_placement_failures failures are reached
+                failure_count = 0
+                while failure_count < int(self.config.settings['num_bulb_placement_failures']):
+                    if not self.phenotype.place_bulb_randomly(self.population[genotype_index].bulbs):
+                        failure_count += 1
 
 
         self.max_run_fitness = 0
@@ -118,8 +121,6 @@ class EADriver:
                 self.best_fit_genotype = genotype
                 # TODO: write to solution file
         
-        self.sort_genotypes(population)
-
         self.eval_count += len(population)
 
         if log_run:
@@ -134,7 +135,7 @@ class EADriver:
         """
         if int(self.config.settings['use_fitness_proportional_selection']):
             # Select parents for breeding using the fitness proportional "roulette wheel" method (with replacement)
-            self.parents = random.choices(self.population, weights=[(g.fitness_ratio * 100) / len(self.population) for g in self.population], k=int(self.config.settings['parent_population_size']))
+            self.parents = random.choices(self.population, weights=[(g.fitness_ratio * 100) / float(len(self.population)) for g in self.population], k=int(self.config.settings['parent_population_size']))
 
         else:
             # TODO: Perform a k-tournament selection
@@ -188,6 +189,8 @@ class EADriver:
             return genotype_class.Genotype(child_bulbs)
 
 
+        self.children = []
+
         for _ in range(self.offspring_pool_size):
             # Select parents with replacement
             parent_a = self.parents[random.randint(0, len(self.parents) - 1)]
@@ -209,27 +212,29 @@ class EADriver:
             If this cannot be done in a valid way, the child is left unchanged.
             """
             tmp_child = copy.deepcopy(child)
-
             rand_bulb_index = random.randint(0, len(tmp_child.bulbs) - 1)
 
             try:
                 tmp_child.pop(rand_bulb_index)
             except:
-                # No bulbs avail to remove
+                # No bulbs available to remove
                 pass
             
             shuffled_bulb = False
-            for _ in range(int(self.config.settings['max_num_random_bulb_placements_mutation'])):
+            fail_count = 0
+            while fail_count < int(self.config.settings['num_bulb_placement_failures_mutation']):
                 if self.phenotype.place_bulb_randomly(tmp_child.bulbs):
                     shuffled_bulb = True
                     break
+                else:
+                    fail_count += 1
             
             if shuffled_bulb:
                 child = copy.deepcopy(tmp_child)
 
 
         for child in self.children:
-            if random.random() < float(self.config.settings['bulb_shuffle_prob']):
+            if random.random() < float(self.config.settings['mutation_probability']):
                 shuffle_bulb(child)
 
 
