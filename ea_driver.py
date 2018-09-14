@@ -299,13 +299,6 @@ class EADriver:
         genotype_list.sort(key=lambda x : x.fitness_ratio, reverse=True)
 
 
-    def print_update(self):
-        """Prints the run count, eval count, and a fitness update to the screen."""
-        print('Run: %i\tEval count: %i' % (self.run_count, self.eval_count))
-        print('Avg Fitness: %f\tBest Fitness (Ratio): %f' % (self.avg_fitness_ratio, self.best_fit_genotype.fitness_ratio))
-        print()
-
-
     def increment_run_count(self):
         """Increments the run count by one."""
         self.run_count += 1
