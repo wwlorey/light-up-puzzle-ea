@@ -60,9 +60,9 @@ class Log:
         self.seed = seed
         self.puzzle = puzzle
 
+        write_config_params()
         self.write('Result Log')
         self.write()
-        write_config_params()
 
     
     def write(self, write_string=''):
