@@ -101,42 +101,15 @@ class LightUpPuzzle:
 
 
         self.black_squares = {}
-        self.log_str = ''
-
         self.config = config
-
-        # Seed the random number generator
-        self.log_str += 'seed: '
-        if int(self.config.settings["use_external_seed"]):
-            # Use external seed
-            seed_val = float(self.config.settings["seed"])
-
-        else:
-            # Default to system time as seed
-            seed_val = time.time()
-
-        random.seed(seed_val)
-        self.log_str += str(seed_val) + '\n\n'
 
         if int(self.config.settings["generate_uniform_random_puzzle"]):
             # Generate random initial board state
             generate_random_board()
 
-            # TODO: make the log file writing better
-            self.log_str += 'randomly generated puzzle\n' + \
-                            '\tmin_random_board_dimension: ' + str(self.config.settings["min_random_board_dimension"]) + '\n' + \
-                            '\tmax_random_board_dimension: ' + str(self.config.settings["max_random_board_dimension"]) + '\n' + \
-                            '\toverride_random_board_dimensions: ' + ('True' if int(self.config.settings["override_random_board_dimensions"]) else 'False') + '\n' + \
-                            '\toverride_num_rows: ' + str(self.config.settings["override_num_rows"]) + '\n' + \
-                            '\toverride_num_cols: ' + str(self.config.settings["override_num_cols"]) + '\n' + \
-                            '\tblack_square_value_weights: ' + str(self.config.settings["black_square_value_weights"]) + '\n' + \
-                            '\tblack_square_placement_prob: ' + str(self.config.settings["black_square_placement_prob"]) + '\n\n'
-
         else:
             # Read initial board state
             with open(self.config.settings["input_file_path"], 'r') as input_file:
-                self.log_str += 'puzzle source: ' + self.config.settings["input_file_path"] + '\n\n'
-
                 # Read line 0 (number of columns)
                 self.num_cols = int(input_file.readline())
 
@@ -150,15 +123,6 @@ class LightUpPuzzle:
 
             # Generate coordinate versions of the board
             generate_coord_boards()
-
-
-        self.log_str += 'board size (#cols x #rows): ' + str(self.num_cols) + ' x ' + str(self.num_rows) + '\n' + \
-                        'enforce_adj_quotas: ' + ('True' if int(self.config.settings["enforce_adj_quotas"]) else 'False') + '\n' + \
-                        'adj_value_dont_care: ' + str(self.config.settings["adj_value_dont_care"]) + '\n' + \
-                        'max_num_random_bulb_placements: ' + str(self.config.settings["max_num_random_bulb_placements"]) + '\n\n'
-
-        with open(config.settings["log_file_path"], 'a') as log:
-            log.write(self.log_str)
 
 
     def get_random_coord(self):
