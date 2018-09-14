@@ -13,17 +13,6 @@ class EADriver:
         Where config is a Config object. 
         """
 
-        def init_experiment_variables():
-            """Initializes experiment specific variables.
-            
-            This function should only be called once (at the beginning of the program, 
-            by the class' __init__ function).
-            """
-            self.max_global_fitness = 0
-            self.run_count = 1
-            self.best_fit_genotype = genotype_class.Genotype()
-        
-
         self.config = config
 
         # Initialize the seed class
@@ -31,8 +20,9 @@ class EADriver:
 
         self.population_size = int(self.config.settings['µ'])
         self.offspring_pool_size = int(self.config.settings['λ'])
+        
+        self.run_count = 1
 
-        init_experiment_variables()
         self.init_run_variables()
 
         # Initialize the log file class
@@ -87,6 +77,7 @@ class EADriver:
         self.total_fitness_ratio_sum = 0
         self.stale_fitness_count = 0
         self.prev_avg_fitness_ratio = 0.0
+        self.best_fit_genotype = genotype_class.Genotype()
 
         # Create/reset the base puzzle class (phenotype)
         self.phenotype = puzzle_class.LightUpPuzzle(self.config)
