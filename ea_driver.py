@@ -81,7 +81,7 @@ class EADriver:
 
 
         self.max_run_fitness = 0
-        self.eval_count = 1
+        self.eval_count = 0
         self.avg_fitness_ratio = 0.0
         self.total_fitnesses_seen = 0
         self.total_fitness_ratio_sum = 0
@@ -106,8 +106,8 @@ class EADriver:
         init_puzzles_with_bulbs()
 
     
-    def evaluate(self, genotypes, log_run=False):
-        """Evaluates all given genotypes, updating their fitness values, the average 
+    def evaluate(self, genotypes, log_run=True):
+        """Evaluates all genotypes in the list genotypes, updating their fitness values, the average 
         fitness value, and the best fitness seen so far.
 
         If log_run is True, the state of the experiment is written to the log file.

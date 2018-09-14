@@ -23,9 +23,9 @@ if __name__ == '__main__':
     # Run the EA
     while ea_driver.run_count <= int(config.settings["num_experiment_runs"]):
 
-        while True:
-            ea_driver.evaluate(ea_driver.population, log_run=True)
+        ea_driver.evaluate(ea_driver.population)
 
+        while True:
             ea_driver.select_parents()
 
             ea_driver.recombine()
