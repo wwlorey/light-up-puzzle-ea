@@ -1,9 +1,9 @@
 import copy
-import genotype as genotype_class
-import light_up_puzzle as puzzle_class
-import log as log_class
-import seed as seed_class
+import ea.genotype as genotype_class
+import ea.log as log_class
+import puzzle.light_up_puzzle as puzzle_class
 import random
+import util.seed as seed_class
 
 
 class EADriver:

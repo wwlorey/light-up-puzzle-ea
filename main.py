@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import args as args_class
-import config as config_class
-import ea_driver as ea_driver_class
+import ea.ea_driver as ea_driver_class
+import util.args as args_class
+import util.config as config_class
 
 
 if __name__ == '__main__':

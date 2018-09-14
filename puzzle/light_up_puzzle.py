@@ -1,5 +1,5 @@
-import coordinate as coord_class
 import copy
+import puzzle.coordinate as coord_class
 import random
 import time
 
