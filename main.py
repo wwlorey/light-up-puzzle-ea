@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # Run the EA
     while ea_driver.run_count <= int(config.settings["num_experiment_runs"]):
 
-        while ea_driver.eval_count <= int(config.settings['num_fitness_evaluations']):
+        while True:
             ea_driver.evaluate(ea_driver.population, log_run=True)
 
             ea_driver.select_parents()
@@ -41,4 +41,3 @@ if __name__ == '__main__':
             
         ea_driver.init_run_variables()
         ea_driver.increment_run_count()
-

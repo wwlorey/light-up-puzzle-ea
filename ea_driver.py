@@ -70,7 +70,7 @@ class EADriver:
         def init_puzzles_with_bulbs():
             """Randomly places bulbs on each puzzle in population in a uniform manner.
             
-            The number of attempted bulb placements is determined by config.
+            The number of attempted bulb placement failures is determined by config.
             """
             for genotype_index in range(len(self.population)):
                 # Place bulbs until num_bulb_placement_failures failures are reached
@@ -85,6 +85,8 @@ class EADriver:
         self.avg_fitness_ratio = 0.0
         self.total_fitnesses_seen = 0
         self.total_fitness_ratio_sum = 0
+        self.stale_fitness_count = 0
+        self.prev_avg_fitness_ratio = 0.0
 
         # Create/reset the base puzzle class (phenotype)
         self.phenotype = puzzle_class.LightUpPuzzle(self.config)
@@ -124,6 +126,13 @@ class EADriver:
             if genotype.fitness > self.best_fit_genotype.fitness:
                 self.best_fit_genotype = genotype
                 # TODO: write to solution file
+            
+            # Determine if the population fitness is stagnating
+            if self.avg_fitness_ratio == self.prev_avg_fitness_ratio:
+                self.stale_fitness_count += 1
+            else:
+                self.stale_fitness_count = 0
+                self.prev_avg_fitness_ratio = self.avg_fitness_ratio
             
             self.eval_count += 1
 
@@ -282,12 +291,19 @@ class EADriver:
 
 
     def decide_termination(self):
-        """Returns True if the program will terminate, False otherwise."""
-        if self.best_fit_genotype.fitness_ratio == 1.0:
-            # The board has been completely solved
+        """Returns True if the program will terminate, False otherwise.
+
+        The program will terminate if any of the following conditions are True:
+            1. There has been no change in fitness (average fitness) for n evaluations.
+            2. The number of evaluations specified in config has been reached.
+        """
+        if self.stale_fitness_count >= int(self.config.settings['n_termination_convergence_criterion']):
+            # There has been no change in average fitness for too long
             return True
-        
-        # TODO: Implement stagnant solution growth timeout
+
+        if self.eval_count >= int(self.config.settings['num_fitness_evaluations']):
+            # The number of desired evaluations has been reached
+            return True
 
         return False
 
