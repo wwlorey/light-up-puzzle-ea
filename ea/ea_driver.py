@@ -1,6 +1,7 @@
 import copy
 import ea.genotype as genotype_class
 import ea.log as log_class
+import math
 import puzzle.light_up_puzzle as puzzle_class
 import random
 import util.seed as seed_class
@@ -125,7 +126,7 @@ class EADriver:
                     self.phenotype.write_to_soln_file(self.best_fit_global_genotype.bulbs)
             
             # Determine if the population fitness is stagnating
-            if self.avg_fitness_ratio == self.prev_avg_fitness_ratio:
+            if math.isclose(self.avg_fitness_ratio, self.prev_avg_fitness_ratio, rel_tol=float(self.config.settings['termination_convergence_criterion_magnitude'])):
                 self.stale_fitness_count += 1
             else:
                 self.stale_fitness_count = 0
@@ -185,11 +186,18 @@ class EADriver:
             min_crossover_index = 0
             max_crossover_index = min(len(a_bulbs) - 1, len(b_bulbs) - 1)
 
+            if not max_crossover_index:
+                if len(parent_a.bulbs):
+                    return genotype_class.Genotype(parent_a.bulbs)
+                else:
+                    return genotype_class.Genotype(parent_b.bulbs)
+
             crossover_indices = []
             rand_start = min_crossover_index 
             for _ in range(n):
-                crossover_indices.append(random.randint(rand_start, max_crossover_index))
-                rand_start = crossover_indices[-1]
+                if not rand_start == max_crossover_index and rand_start < max_crossover_index:
+                    crossover_indices.append(random.randint(rand_start, max_crossover_index))
+                    rand_start = crossover_indices[-1]
             
             # Ensure the entire parent is copied during crossover
             crossover_indices.append(max_crossover_index + 1)
@@ -234,7 +242,10 @@ class EADriver:
             If this cannot be done in a valid way, the child is left unchanged.
             """
             tmp_child = copy.deepcopy(child)
-            rand_bulb_index = random.randint(0, len(tmp_child.bulbs) - 1)
+            if len(tmp_child.bulbs):
+                rand_bulb_index = random.randint(0, len(tmp_child.bulbs) - 1)
+            else:
+                rand_bulb_index = 0
 
             try:
                 tmp_child.pop(rand_bulb_index)
@@ -257,7 +268,8 @@ class EADriver:
 
         for child in self.children:
             if random.random() < float(self.config.settings['mutation_probability']):
-                shuffle_bulb(child)
+                for i in range(random.randint(1, int(self.config.settings['rand_num_bulb_shuffles']))):
+                    shuffle_bulb(child)
 
 
     def select_for_survival(self):

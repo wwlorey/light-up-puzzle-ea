@@ -19,6 +19,7 @@ if __name__ == '__main__':
     # Initialize the EA driver and its run variables
     ea_driver = ea_driver_class.EADriver(config)
 
+    ea_driver.phenotype.visualize()
 
     # Run the EA
     while ea_driver.run_count <= int(config.settings["num_experiment_runs"]):
