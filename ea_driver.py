@@ -22,6 +22,7 @@ class EADriver:
         self.offspring_pool_size = int(self.config.settings['λ'])
         
         self.run_count = 1
+        self.best_fit_global_genotype = genotype_class.Genotype()
 
         self.init_run_variables()
 
@@ -77,7 +78,7 @@ class EADriver:
         self.total_fitness_ratio_sum = 0
         self.stale_fitness_count = 0
         self.prev_avg_fitness_ratio = 0.0
-        self.best_fit_genotype = genotype_class.Genotype()
+        self.best_fit_local_genotype = genotype_class.Genotype()
 
         # Create/reset the base puzzle class (phenotype)
         self.phenotype = puzzle_class.LightUpPuzzle(self.config)
@@ -113,10 +114,14 @@ class EADriver:
             self.total_fitnesses_seen += 1
             self.avg_fitness_ratio = self.total_fitness_ratio_sum / self.total_fitnesses_seen
 
-            # Determine if this fitness is the new best fitness
-            if genotype.fitness > self.best_fit_genotype.fitness:
-                self.best_fit_genotype = genotype
-                # TODO: write to solution file
+            # Determine if this fitness is the new best fitness (both locally and globally)
+            if genotype.fitness_ratio > self.best_fit_local_genotype.fitness_ratio:
+                self.best_fit_local_genotype = genotype
+
+                if self.best_fit_local_genotype.fitness_ratio > self.best_fit_global_genotype.fitness_ratio:
+                    self.best_fit_global_genotype = self.best_fit_local_genotype
+
+                    # TODO: write to solution file
             
             # Determine if the population fitness is stagnating
             if self.avg_fitness_ratio == self.prev_avg_fitness_ratio:
@@ -129,7 +134,7 @@ class EADriver:
 
         if log_run:
             self.log.write_run_header(self.run_count)
-            self.log.write_run_data(self.eval_count, self.avg_fitness_ratio, self.best_fit_genotype.fitness_ratio)
+            self.log.write_run_data(self.eval_count, self.avg_fitness_ratio, self.best_fit_local_genotype.fitness_ratio)
 
 
     def select_parents(self):
