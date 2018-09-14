@@ -24,9 +24,9 @@ if __name__ == '__main__':
     while ea_driver.run_count <= int(config.settings["num_experiment_runs"]):
 
         while ea_driver.eval_count <= int(config.settings['num_fitness_evaluations']):
-            ea_driver.print_update()
-
             ea_driver.evaluate(ea_driver.population, log_run=True)
+
+            ea_driver.print_update()
 
             ea_driver.select_parents()
 

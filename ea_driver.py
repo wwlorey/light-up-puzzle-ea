@@ -105,7 +105,11 @@ class EADriver:
 
     
     def evaluate(self, population, log_run=False):
-        """TODO""" 
+        """Evaluates all genotypes in population, updating their fitness values,
+        the average fitness value for this experiment, and the best fitness seen so far.
+
+        If log_run is True, the state of the experiment is written to the log file.
+        """ 
         for genotype in population:
             self.phenotype.check_valid_solution(genotype.bulbs)
             genotype.fitness = self.phenotype.get_fitness()
@@ -129,9 +133,14 @@ class EADriver:
 
 
     def select_parents(self):
-        """Chooses which parents from the population breed.
+        """Chooses which parents from the population will breed.
 
-        TODO
+        Depending on the parent selection configuration, one of the two following methods
+        is used to select parents:
+            1. Fitness proportional selection
+            2. k-tournament selection with replacement
+
+        The resulting parents are stored in self.parents.
         """
         self.parents = []
 
@@ -151,12 +160,13 @@ class EADriver:
 
     def recombine(self):
         """Breeds λ (offspring_pool_size) children from the existing parent population.
-        
-        TODO
+
+        The resulting children are stored in self.children.
         """
 
         def breed(parent_a, parent_b):
-            """Breeds two parent genotypes together to produce a child genotype.
+            """Breeds two parent genotypes together to produce a child genotype using
+            n-point crossover.
 
             Returns the child genotype.
             """
@@ -200,6 +210,7 @@ class EADriver:
 
         for _ in range(self.offspring_pool_size):
             # Select parents with replacement
+            # Note: this implementation allows for parent_a and parent_b to be the same genotype
             parent_a = self.parents[random.randint(0, len(self.parents) - 1)]
             parent_b = self.parents[random.randint(0, len(self.parents) - 1)]
 
@@ -208,13 +219,11 @@ class EADriver:
         
     
     def mutate(self):
-        """Performs mutation on each child in the child population.
-        
-        TODO
-        """
+        """Probabilistically performs mutation on each child in the child population."""
 
         def shuffle_bulb(child):
-            """Attempts to move the placement of a random bulb to a random position.
+            """Attempts to move the placement of a random bulb to a random position in a given
+            child genotype.
 
             If this cannot be done in a valid way, the child is left unchanged.
             """
@@ -246,10 +255,13 @@ class EADriver:
 
 
     def select_for_survival(self):
-        """Selects which children from the child population will replace parents
-        in the general population.
+        """Integrates children from self.children into self.population while keeping µ (population
+        size) constant.
 
-        Keeps µ (population size) constant.
+        Depending on the survival selection configuration, one of the two following methods
+        is used to select survivors:
+            1. Truncation
+            2. k-tournament selection without replacement
         """
         combined_generations = self.population + self.children
         self.population = []
@@ -270,10 +282,7 @@ class EADriver:
 
 
     def decide_termination(self):
-        """Will the experiment terminate?
-
-        Returns True if the program will terminate, False otherwise.
-        """
+        """Returns True if the program will terminate, False otherwise."""
         if self.best_fit_genotype.fitness_ratio == 1.0:
             # The board has been completely solved
             return True
@@ -291,7 +300,7 @@ class EADriver:
 
 
     def print_update(self):
-        """Prints a run count and eval count update to the screen."""
+        """Prints the run count, eval count, and a fitness update to the screen."""
         print('Run: %i\tEval count: %i' % (self.run_count, self.eval_count))
         print('Avg Fitness: %f\tBest Fitness (Ratio): %f' % (self.avg_fitness_ratio, self.best_fit_genotype.fitness_ratio))
         print()
@@ -303,7 +312,7 @@ class EADriver:
 
     
     def perform_tournament_selection(self, genotypes, k, w_replacement=False):
-        """Performs a k-tournament selection on the list of genotype objects.
+        """Performs a k-tournament selection on genotypes, a list of genotype objects.
 
         Returns the winning genotype.
         """
@@ -323,5 +332,5 @@ class EADriver:
             if w_replacement == False:
                 forbidden_indices.add(rand_index)
 
-        # Fight the genotypes
+        # Make the genotypes fight, return the winner
         return max(arena_genotypes, key=lambda x : x.fitness_ratio)
