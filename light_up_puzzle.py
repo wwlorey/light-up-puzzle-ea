@@ -271,7 +271,10 @@ class LightUpPuzzle:
                     if coord in self.black_squares:
                         break # Shine cannot propagate any further
                     elif coord in bulbs:
-                        return False # Redundant check for bulb on bulb shining
+                        # Redundant check for bulb on bulb shining
+                        # Nullify the fitness of this board
+                        self.shined_squares = set([])
+                        return False
                     else:
                         self.shined_squares.add(coord)
 

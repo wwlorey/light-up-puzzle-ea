@@ -104,13 +104,13 @@ class EADriver:
         init_puzzles_with_bulbs()
 
     
-    def evaluate(self, population, log_run=False):
-        """Evaluates all genotypes in population, updating their fitness values,
-        the average fitness value for this experiment, and the best fitness seen so far.
+    def evaluate(self, genotypes, log_run=False):
+        """Evaluates all given genotypes, updating their fitness values, the average 
+        fitness value, and the best fitness seen so far.
 
         If log_run is True, the state of the experiment is written to the log file.
         """ 
-        for genotype in population:
+        for genotype in genotypes:
             self.phenotype.check_valid_solution(genotype.bulbs)
             genotype.fitness = self.phenotype.get_fitness()
             genotype.fitness_ratio = genotype.fitness / (self.phenotype.num_rows * self.phenotype.num_cols - len(self.phenotype.black_squares))
@@ -124,8 +124,8 @@ class EADriver:
             if genotype.fitness > self.best_fit_genotype.fitness:
                 self.best_fit_genotype = genotype
                 # TODO: write to solution file
-        
-        self.eval_count += len(population)
+            
+            self.eval_count += 1
 
         if log_run:
             self.log.write_run_header(self.run_count)

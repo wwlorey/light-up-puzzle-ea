@@ -16,7 +16,7 @@ if __name__ == '__main__':
     config = config_class.Config(config_file)
 
 
-    # Initialize the EA driver
+    # Initialize the EA driver and its run variables
     ea_driver = ea_driver_class.EADriver(config)
 
 
