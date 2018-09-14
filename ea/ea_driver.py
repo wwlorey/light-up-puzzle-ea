@@ -19,8 +19,8 @@ class EADriver:
         # Initialize the seed class
         self.seed = seed_class.Seed(self.config)
 
-        self.population_size = int(self.config.settings['µ'])
-        self.offspring_pool_size = int(self.config.settings['λ'])
+        self.population_size = int(self.config.settings['mu'])
+        self.offspring_pool_size = int(self.config.settings['lamda'])
         
         self.run_count = 1
         self.best_fit_global_genotype = genotype_class.Genotype()
@@ -166,7 +166,7 @@ class EADriver:
 
 
     def recombine(self):
-        """Breeds λ (offspring_pool_size) children from the existing parent population.
+        """Breeds lamda (offspring_pool_size) children from the existing parent population.
 
         The resulting children are stored in self.children.
         """
@@ -273,7 +273,7 @@ class EADriver:
 
 
     def select_for_survival(self):
-        """Integrates children from self.children into self.population while keeping µ (population
+        """Integrates children from self.children into self.population while keeping mu (population
         size) constant.
 
         Depending on the survival selection configuration, one of the two following methods
