@@ -121,7 +121,8 @@ class EADriver:
                 if self.best_fit_local_genotype.fitness_ratio > self.best_fit_global_genotype.fitness_ratio:
                     self.best_fit_global_genotype = self.best_fit_local_genotype
 
-                    # TODO: write to solution file
+                    # Write to solution file
+                    self.phenotype.write_to_soln_file(self.best_fit_global_genotype.bulbs)
             
             # Determine if the population fitness is stagnating
             if self.avg_fitness_ratio == self.prev_avg_fitness_ratio:
