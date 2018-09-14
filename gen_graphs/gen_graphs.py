@@ -1,51 +1,85 @@
-# TODO: This file needs to be refactored for 1b
+#!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 
-# The run data for each experiment's fittest solution was scraped from the log files and put in the following files for easy access
-soln_data_files = ['random_gen_soln_data.txt', 'website_puzzle_soln_data.txt']
+log_files = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt']
 
-# Formatting parameters
-soln_data_titles = ['Randomly Generated Puzzles', 'Provided Puzzle']
-soln_scales = [250, 300]
+for log_file in log_files:
+    with open(log_file, 'r') as file:
+        file = file.read().split('\n')
+        file = [line for line in file[file.index('Run 1'):] if not line == '']
+        evals = []
+        fitnesses = []
+        best_fitnesses = []
 
-for index, file_name in enumerate(soln_data_files):
-    with open(file_name, 'r') as file:
-        eval_list = []
-        fitness_list = []
-        
-        # Read the input file into the above lists
-        line_count = -1
+        curr_evals = []
+        curr_fitnesses = []
+        curr_best_fitnesses = []
+
+        curr_run = 1
 
         for line in file:
-            line_count += 1
+            if line[0] == 'R':
+                line = line.split()
+                run = int(line[1])
+                
+                if run > curr_run:
+                    curr_run = run
+                    evals.append(curr_evals)
+                    fitnesses.append(curr_fitnesses)
+                    best_fitnesses.append(curr_best_fitnesses)
 
-            if line_count == 1:
-                split_line = [int(_) for _ in line.split('\t')]
+                    curr_evals = []
+                    curr_fitnesses = []
+                    curr_best_fitnesses = []
 
-                eval_list.append(split_line[0])
-                fitness_list.append(split_line[1])
+            else:
+                line = line.split('\t')
 
-            elif line_count == 2:
-                # Reset the line count
-                line_count = -1
-    
-    # Graph evaluations vs. fitness
-    plt.plot(eval_list, fitness_list, '-ro', linewidth = 2.0)
+                curr_evals.append(int(line[0]))
+                curr_fitnesses.append(float(line[1]))
+                curr_best_fitnesses.append(float(line[2]))
+        
+        num_entries = len(evals)
+        lists = [evals, fitnesses, best_fitnesses]
 
-    # Set axis display parameters
-    plt.xticks(np.arange(0, max(eval_list) + 500, soln_scales[index]))
-    plt.yticks(np.arange(0, max(fitness_list) + 10, 10))
-    plt.xlim(0, eval_list[-1] + (len(eval_list) * 20))
+        # Average all values together
+        # Condense the 2D lists into 1D
+        for l in range(len(lists)):
+            new = []
 
-    # Include necessary labels
-    plt.xlabel('evaluations')
-    plt.ylabel('fitness')
-    plt.title('Evaluations vs. Fitness for ' + soln_data_titles[index] + '\n(without enforcing black cell number constraint)')
-    plt.annotate('Maximum fitness: ' + str(fitness_list[-1]) + '\nEvaluation number: ' + str(eval_list[-1]), xy = (eval_list[-1], fitness_list[-1]),
-        xytext=(1, -60), ha='right', textcoords='offset points', arrowprops=dict(arrowstyle = 'simple', shrinkA = 0))
+            for i in range(len(lists[l][0])):
+                summation = 0
 
-    # Save and close the plot
-    plt.savefig(file_name[:file_name.find('data')] + 'graph.png')
-    plt.close()
+                for sub_l in lists[l]:
+                    summation += sub_l[i]
+                
+                new.append(summation / num_entries)
+        
+            lists[l] = new
+
+        eval_list = lists[0]
+        fitness_list = lists[1]
+        best_fitness_list = lists[2]
+
+        # Graph the result
+        plt.plot(eval_list, fitness_list, '-ro', linewidth = 2.0)
+        plt.plot(eval_list, best_fitness_list, '-bo', linewidth = 2.0)
+
+        plt.ylim(0, 1)
+        plt.xlim(0, eval_list[-1] + (len(eval_list) * 20))
+
+        red_patch = mpatches.Patch(color='red', label='Average Fitness')
+        blue_patch = mpatches.Patch(color='blue', label='Average Best Fitness')
+        plt.legend(handles=[blue_patch, red_patch])
+
+        # Include necessary labels
+        plt.xlabel('Evaluations')
+        plt.ylabel('Fitness\n(ratio of lit cells to all white cells)')
+
+        # Save and close the plot
+        plt.savefig(log_file[:log_file.find('log')] + 'graph.png')
+        plt.close()
+            
