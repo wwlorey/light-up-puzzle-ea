@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 
-log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt']
+log_file_paths = ['output/random_gen_log.txt', 'output/website_puzzle_log.txt']
 graph_titles = ['Randomly Generated Puzzles', 'Provided Puzzle']
 
 for q in range(len(log_file_paths)):
@@ -85,15 +85,15 @@ for q in range(len(log_file_paths)):
         plt.ylim(0, 1)
         plt.xlim(0, evals[-1] + (len(evals) * 20))
 
-        red_patch = mpatches.Patch(color='red', label='Average Fitness')
-        blue_patch = mpatches.Patch(color='blue', label='Average Best Fitness')
+        red_patch = mpatches.Patch(color='red', label='Average Local Fitness')
+        blue_patch = mpatches.Patch(color='blue', label='Local Best Fitness')
         plt.legend(handles=[blue_patch, red_patch])
 
         plt.title('Evaluations versus Average Local Fitness and Evaluations versus Local\nBest Fitness for ' + graph_titles[q] + ', Averaged Over All Runs')
 
         # Include necessary labels
         plt.xlabel('Evaluations')
-        plt.ylabel('Fitness\n(ratio of lit cells to all white cells)')
+        plt.ylabel('Fitness\n(ratio of lit white cells to total number of white cells)')
 
         # Save and close the plot
         plt.savefig(log_file_paths[q][:log_file_paths[q].find('log')] + 'graph.png')
