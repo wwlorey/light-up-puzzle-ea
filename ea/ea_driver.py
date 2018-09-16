@@ -20,7 +20,7 @@ class EADriver:
         self.seed = seed_class.Seed(self.config)
 
         self.population_size = int(self.config.settings['mu'])
-        self.offspring_pool_size = int(self.config.settings['lamda'])
+        self.offspring_pool_size = int(self.config.settings['lambda'])
         
         self.run_count = 1
         self.best_fit_global_genotype = genotype_class.Genotype()
@@ -166,7 +166,7 @@ class EADriver:
 
 
     def recombine(self):
-        """Breeds lamda (offspring_pool_size) children from the existing parent population.
+        """Breeds lambda (offspring_pool_size) children from the existing parent population.
 
         The resulting children are stored in self.children.
         """

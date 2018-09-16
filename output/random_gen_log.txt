@@ -12,7 +12,7 @@ min_random_board_dimension: 3
 board size (#cols x #rows): 10 x 12
 seed: 1536956228.2934232
 mu: 1000
-lamda: 200
+lambda: 200
 enforce_adj_quotas: 0
 num_experiment_runs: 30
 num_fitness_evaluations: 10000

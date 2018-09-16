@@ -3,7 +3,7 @@ Puzzle Source: input/a1.txt
 board size (#cols x #rows): 14 x 14
 seed: 1536957530.7926805
 mu: 1000
-lamda: 200
+lambda: 200
 enforce_adj_quotas: 0
 num_experiment_runs: 30
 num_fitness_evaluations: 10000
