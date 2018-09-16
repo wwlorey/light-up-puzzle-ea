@@ -2,25 +2,34 @@
 
 log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt']
 
-for q in range(len(log_file_paths)):
-    with open(log_file_paths[q], 'r') as log_file:
+for i in range(len(log_file_paths)):
+    with open(log_file_paths[i], 'r') as log_file:
         # Create a list of lines from the log file, disregarding all config parmeters and empty lines
-        log_file = log_file.read().split('\n')
-        log_file = [line for line in log_file[log_file.index('Run 30'):] if not line == '']
+        log_text = log_file.read().split('\n')
+        log_text = [line for line in log_text[log_text.index('Run 1'):] if not line == '']
 
-        fits = []
+        last_best_fits = []
+        all_best_fits = []
+        prev_run_count = 1
 
         # Scrape average fitness data from the log file
-        for line in log_file:
-            if line[0] != 'R':
+        for line in log_text:
+            if line[0] == 'R':
+                curr_run_count = int(line.split()[1])
+                if not prev_run_count == curr_run_count:
+                    last_best_fits.append(all_best_fits[-1])
+                    prev_run_count = curr_run_count
+
+            else:
                 # This line has eval and fitness data
                 line = line.split('\t')
 
                 # Append the average fitness
-                fits.append(float(line[1]))
+                all_best_fits.append(line[2])
+
+        last_best_fits.append(all_best_fits[-1])
         
-
-        # Average the average fitnesses together
-        avg_fitness = sum(fits) / len(fits)
-
-        print(avg_fitness)
+    # Write the last (local) best fitnesses to a file
+    out = open(log_file_paths[i][:log_file_paths[i].find('log')] + 'last_best_local_fits.txt', 'w')
+    for fit in last_best_fits:
+        out.write(fit + '\n')
