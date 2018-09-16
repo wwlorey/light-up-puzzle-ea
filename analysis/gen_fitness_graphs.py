@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 
-log_file_paths = ['output/random_gen_log.txt', 'output/website_puzzle_log.txt']
+log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt']
 graph_titles = ['Randomly Generated Puzzles', 'Provided Puzzle']
 
 for q in range(len(log_file_paths)):
