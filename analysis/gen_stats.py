@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt']
+log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt', '../output/website_puzzle_log_random_search.txt', '../output/random_gen_log_random_search.txt']
 
 for i in range(len(log_file_paths)):
     with open(log_file_paths[i], 'r') as log_file:
@@ -30,6 +30,6 @@ for i in range(len(log_file_paths)):
         last_best_fits.append(all_best_fits[-1])
         
     # Write the last (local) best fitnesses to a file
-    out = open(log_file_paths[i][:log_file_paths[i].find('log')] + 'last_best_local_fits.txt', 'w')
-    for fit in last_best_fits:
-        out.write(fit + '\n')
+    with open(log_file_paths[i][:log_file_paths[i].find('.txt')] + '_last_best_local_fits.txt', 'w') as out:
+        for fit in last_best_fits:
+            out.write(fit + '\n')
