@@ -13,77 +13,45 @@ for q in range(len(log_file_paths)):
         log_file = log_file.read().split('\n')
         log_file = [line for line in log_file[log_file.index('Run 1'):] if not line == '']
 
-        evals = []
-        curr_evals = []
-        fits = []
-        curr_fits = []
-        best_fits = []
-        curr_best_fits = []
+
+        # key: evaluation number, value: [average fitness, local best fitness]
+        eval_dict = {}
 
         curr_run = 1
 
-        # Segregate data from log file into appropriate lists
+        # Scrape data from the log file
         for line in log_file:
-            if line[0] == 'R':
-                # This line has a run update
-                line = line.split()
-                run = int(line[1])
-                
-                if run > curr_run:
-                    # A new run has been encountered. Append the curr_* lists
-                    curr_run = run
-                    evals.append(curr_evals)
-                    fits.append(curr_fits)
-                    best_fits.append(curr_best_fits)
-
-                    # Reset the curr_* lists
-                    curr_evals = []
-                    curr_fits = []
-                    curr_best_fits = []
-
-            else:
+            if not line[0] == 'R':
                 # This line has eval and fitness data
-                line = line.split('\t')
+                eval_num, avg_fit, best_fit = line.split('\t')
 
-                # Append to the curr_* lists
-                curr_evals.append(int(line[0]))
-                curr_fits.append(float(line[1]))
-                curr_best_fits.append(float(line[2]))
-        
+                eval_num = int(eval_num)
+                avg_fit = float(avg_fit)
+                best_fit = float(best_fit)
 
-        num_entries = len(evals)
-        experiment_data = [evals, fits, best_fits]
+                if eval_num in eval_dict:
+                    eval_dict[eval_num][0] += avg_fit
+                    eval_dict[eval_num][1] += best_fit
+                    eval_dict[eval_num][2] += 1
+                else:
+                    eval_dict[eval_num] = [avg_fit, best_fit, 1]
 
-        # Average all values together
-        # Condense the 2D lists into 1D
-        for k in range(len(experiment_data)):
-            avg = []
-
-            for i in range(len(experiment_data[k][0])):
-                summation = 0
-
-                # Sum all data items in the slice of experiment data
-                for data_item in experiment_data[k]:
-                    summation += data_item[i]
-                
-                # Average the data
-                avg.append(summation / num_entries)
-        
-            # Replace the original data with the averaged version
-            experiment_data[k] = avg
-
-
-        # Reassign list names for clarity
-        evals = experiment_data[0]
-        fits = experiment_data[1]
-        best_fits = experiment_data[2]
+        evals = []
+        avg_fits = []
+        best_fits = []
+        for eval_num in sorted(eval_dict.keys()):
+            evals.append(eval_num)
+            avg_fits.append(eval_dict[eval_num][0] / eval_dict[eval_num][2])
+            best_fits.append(eval_dict[eval_num][1] / eval_dict[eval_num][2])
 
         # Plot the results
-        plt.plot(evals, fits, '-ro', linewidth = 2.0)
-        plt.plot(evals, best_fits, '-bo', linewidth = 2.0)
+        fig, ax = plt.subplots()
+
+        ax.step(evals, avg_fits, '-r')
+        ax.step(evals, best_fits, '-b')
 
         plt.ylim(0, 1)
-        plt.xlim(0, evals[-1] + (len(evals) * 20))
+        # plt.xlim(0, evals[-1] + (len(evals) * 20))
 
         red_patch = mpatches.Patch(color='red', label='Average Local Fitness')
         blue_patch = mpatches.Patch(color='blue', label='Local Best Fitness')
@@ -94,6 +62,7 @@ for q in range(len(log_file_paths)):
         # Include necessary labels
         plt.xlabel('Evaluations')
         plt.ylabel('Fitness\n(ratio of lit white cells to total number of white cells)')
+
 
         # Save and close the plot
         plt.savefig(log_file_paths[q][:log_file_paths[q].find('log')] + 'graph.png')

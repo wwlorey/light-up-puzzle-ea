@@ -239,32 +239,26 @@ class EADriver:
             """Attempts to move the placement of a random bulb to a random position in a given
             child genotype.
 
-            If this cannot be done in a valid way, the child is left unchanged.
+            If this cannot be done in a valid way, the child's bulb is removed.
             """
-            tmp_child = copy.deepcopy(child)
-            if len(tmp_child.bulbs):
-                rand_bulb_index = random.randint(0, len(tmp_child.bulbs) - 1)
+            if len(child.bulbs):
+                rand_bulb_index = random.randint(0, len(child.bulbs) - 1)
             else:
                 rand_bulb_index = 0
 
             try:
-                tmp_child.pop(rand_bulb_index)
+                child.pop(rand_bulb_index)
             except:
                 # No bulbs available to remove
                 pass
             
-            shuffled_bulb = False
             fail_count = 0
             while fail_count < int(self.config.settings['num_bulb_placement_failures_mutation']):
-                if self.phenotype.place_bulb_randomly(tmp_child.bulbs):
-                    shuffled_bulb = True
+                if self.phenotype.place_bulb_randomly(child.bulbs):
                     break
                 else:
                     fail_count += 1
             
-            if shuffled_bulb:
-                child = copy.deepcopy(tmp_child)
-
 
         for child in self.children:
             if random.random() < float(self.config.settings['mutation_probability']):
