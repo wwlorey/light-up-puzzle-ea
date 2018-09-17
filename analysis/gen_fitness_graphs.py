@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 
+log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt', '../output/website_puzzle_log_BONUS.txt', '../output/random_gen_log_BONUS.txt']
 
 for q in range(len(log_file_paths)):
     with open(log_file_paths[q], 'r') as log_file:
@@ -60,6 +61,6 @@ for q in range(len(log_file_paths)):
 
 
         # Save and close the plot
-        plt.savefig(log_file_paths[q][:log_file_paths[q].find('log')] + 'graph.png')
+        plt.savefig(log_file_paths[q][:log_file_paths[q].find('.txt')] + '_graph.png')
         plt.close()
             
