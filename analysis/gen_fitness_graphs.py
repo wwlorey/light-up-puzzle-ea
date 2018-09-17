@@ -51,7 +51,7 @@ for q in range(len(log_file_paths)):
 
         plt.ylim(0, 1)
 
-        red_patch = mpatches.Patch(color='red', label='Average Fitness')
+        red_patch = mpatches.Patch(color='red', label='Average Local Fitness')
         blue_patch = mpatches.Patch(color='blue', label='Local Best Fitness')
         plt.legend(handles=[blue_patch, red_patch])
 
