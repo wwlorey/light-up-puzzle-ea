@@ -1,4 +1,18 @@
 #################################
+#   `output` Folder Notes    #
+#################################
+
+My apologies for the crowded `output` folder. Hopefully this will clear up any confusion about the meaning of the files it contains, if any arises.
+
+ * `random_gen_log.txt` and `random_gen_soln.txt` are standard log and solution files. They are generated from running `run.sh` with the `config/random_gen.cfg` config file. Similarly for `website_puzzle_log.txt` and `website_puzzle_soln.txt`.
+
+ * `*_last_best_local_fits.txt` are last best local fits from each experiment scraped from the log files. These files are used in performing statistical analysis.
+
+ * `*_random_search.txt` are files generated from running the random search algorithm.
+
+ * `*_graph.png` are of course the generated graphs corresponding to a particular log file.
+
+#################################
 #   Execution Instructions   #
 #################################
 
