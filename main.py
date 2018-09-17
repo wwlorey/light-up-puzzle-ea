@@ -23,6 +23,7 @@ if __name__ == '__main__':
     # Run the EA
     while ea_driver.run_count <= int(config.settings["num_experiment_runs"]):
 
+        ea_driver.log.write_run_header(ea_driver.run_count)
         ea_driver.evaluate(ea_driver.population)
 
         while True:

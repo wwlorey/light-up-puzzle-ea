@@ -62,7 +62,6 @@ class Log:
 
         write_config_params()
         self.write('Result Log')
-        self.write()
 
     
     def write(self, write_string=''):
@@ -79,6 +78,6 @@ class Log:
 
     def write_run_data(self, eval_count, average_fitness, best_fitness):
         """Writes the given run data to file and to the screen."""
-        run_data = str(eval_count) + '\t' + str(average_fitness) + '\t' + str(best_fitness) + '\n'
+        run_data = str(eval_count) + '\t' + str(average_fitness) + '\t' + str(best_fitness)
         self.write(run_data)
         print(run_data)

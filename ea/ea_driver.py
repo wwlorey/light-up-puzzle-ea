@@ -97,7 +97,6 @@ class EADriver:
             force_adj_bulbs()
         
         init_puzzles_with_bulbs()
-        self.log.write_run_header(self.run_count)
 
     
     def evaluate(self, genotypes, log_run=True):
