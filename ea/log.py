@@ -72,7 +72,7 @@ class Log:
 
     def write_run_header(self, run_count):
         """Writes the given run count to file and to the screen."""
-        run_header = 'Run %i' % (run_count)
+        run_header = '\nRun %i' % (run_count)
         self.write(run_header)
         print(run_header)
 

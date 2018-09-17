@@ -97,6 +97,7 @@ class EADriver:
             force_adj_bulbs()
         
         init_puzzles_with_bulbs()
+        self.log.write_run_header(self.run_count)
 
     
     def evaluate(self, genotypes, log_run=True):
@@ -135,7 +136,6 @@ class EADriver:
             self.eval_count += 1
 
         if log_run:
-            self.log.write_run_header(self.run_count)
             self.log.write_run_data(self.eval_count, self.avg_fitness_ratio, self.best_fit_local_genotype.fitness_ratio)
 
 
