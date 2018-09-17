@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt', '../output/website_puzzle_log_random_search.txt', '../output/random_gen_log_random_search.txt']
+log_file_paths = ['../output/random_gen_log.txt', '../output/website_puzzle_log.txt', '../output/website_puzzle_log_random_search.txt', '../output/random_gen_log_random_search.txt', '../output/website_puzzle_log_BONUS.txt', '../output/random_gen_log_BONUS.txt']
 
 for i in range(len(log_file_paths)):
     with open(log_file_paths[i], 'r') as log_file:
